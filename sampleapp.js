@@ -1,20 +1,20 @@
-var http = require('http');
+var app = require('http').createServer(handler);
+var io = require('socket.io').listen(app);
+
 var fs = require('fs');
+var html = fs.readFileSync('index.html', 'utf8');
 
-var server = http.createServer();
-server.on('request', doRequest);
-server.listen(1337);
-
-function doRequest(req, res) {
-	fs.readFile('./index.html', 'UTF-8', doRead);
-	var title = "サンプルページ";
-	var msg = "これはプログラムで用意したメッセージです.";
-
-	function doRead(err, data) {
-		var str = data.replace(/@@@title@@@/g, title).replace(/@@@message@@@/, msg);
-		res.setHeader('Content-Type','text/html');
-		res.write(str);
-		res.end();
-	}
+function handler (req, res) {
+	res.setHeader('Content-Type', 'text/html');
+	res.setHeader('Content-Length', Buffer.byteLength(html, 'utf8'));
+	res.end(html);
 }
-console.log('Server running at http://127.0.0.1:1337/');
+
+function tick () {
+	var now = new Date().toUTCString();
+	io.sockets.send(now);
+}
+
+setInterval(tick, 1000);
+
+app.listen(8082);
